@@ -1,9 +1,30 @@
 import { useContext } from "react";
-import { Link } from "react-router-dom";
-import { Context } from "../main";
+import { Link, Navigate } from "react-router-dom";
+import { Context, server } from "../main";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export const Header = () => {
-	const { isAuthenticated, setIsAuthenticated } = useContext(Context);
+	const { isAuthenticated, setIsAuthenticated, loading, setLoading } =
+		useContext(Context);
+
+	const logoutHandler = async () => {
+		setLoading(true);
+		try {
+			await axios.get(`${server}/users/logout`, {
+				withCredentials: true,
+			});
+
+			toast.success("Logged Out Successfully");
+			setIsAuthenticated(false);
+			setLoading(false);
+			// <Navigate to={"/login"} />;
+		} catch (error) {
+			toast.error(error.response.data.message);
+			setIsAuthenticated(true);
+			setLoading(false);
+		}
+	};
 
 	return (
 		<nav className="header">
@@ -14,7 +35,9 @@ export const Header = () => {
 				<Link to={"/"}>Home</Link>
 				<Link to={"/profile"}>Profile</Link>
 				{isAuthenticated ? (
-					<button className="btn">Logout</button>
+					<button onClick={logoutHandler} className="btn" disabled={loading}>
+						Logout
+					</button>
 				) : (
 					<Link to={"/login"}>Login</Link>
 				)}
